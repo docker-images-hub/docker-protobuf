@@ -1,19 +1,17 @@
 # syntax=docker/dockerfile:1.4
 
-ARG ALPINE_IMAGE_VERSION
-ARG DART_IMAGE_VERSION
-ARG GO_IMAGE_VERSION
-ARG NODE_IMAGE_VERSION
-ARG RUST_IMAGE_VERSION
-ARG SCALA_SBT_IMAGE_VERSION
-ARG SWIFT_IMAGE_VERSION
-ARG XX_IMAGE_VERSION
+ARG ALPINE_VERSION
+ARG DART_VERSION
+ARG GO_VERSION
+ARG NODE_VERSION
+ARG RUST_VERSION
+ARG SWIFT_VERSION
 
 
-FROM --platform=$BUILDPLATFORM tonistiigi/xx:${XX_IMAGE_VERSION} AS xx
+FROM --platform=$BUILDPLATFORM tonistiigi/xx:master AS xx
 
 
-FROM --platform=$BUILDPLATFORM golang:${GO_IMAGE_VERSION} as go_host
+FROM --platform=$BUILDPLATFORM golang:${GO_VERSION:-1.19.3}-alpine${ALPINE_VERSION:-3.16} as go_host
 COPY --from=xx / /
 WORKDIR /
 RUN mkdir -p /out
@@ -25,7 +23,7 @@ RUN apk add --no-cache \
 FROM --platform=$BUILDPLATFORM go_host as grpc_gateway
 RUN mkdir -p ${GOPATH}/src/github.com/grpc-ecosystem/grpc-gateway
 ARG GRPC_GATEWAY_VERSION
-RUN curl -sSL https://api.github.com/repos/grpc-ecosystem/grpc-gateway/tarball/${GRPC_GATEWAY_VERSION} | tar xz --strip 1 -C ${GOPATH}/src/github.com/grpc-ecosystem/grpc-gateway
+RUN curl -sSL https://api.github.com/repos/grpc-ecosystem/grpc-gateway/tarball/v${GRPC_GATEWAY_VERSION:-2.14.0} | tar xz --strip 1 -C ${GOPATH}/src/github.com/grpc-ecosystem/grpc-gateway
 WORKDIR ${GOPATH}/src/github.com/grpc-ecosystem/grpc-gateway
 RUN go mod download
 ARG TARGETPLATFORM
@@ -43,7 +41,7 @@ RUN xx-verify /out/usr/bin/protoc-gen-openapiv2
 FROM --platform=$BUILDPLATFORM go_host as protoc_gen_doc
 RUN mkdir -p ${GOPATH}/src/github.com/pseudomuto/protoc-gen-doc
 ARG PROTOC_GEN_DOC_VERSION
-RUN curl -sSL https://api.github.com/repos/pseudomuto/protoc-gen-doc/tarball/${PROTOC_GEN_DOC_VERSION} | tar xz --strip 1 -C ${GOPATH}/src/github.com/pseudomuto/protoc-gen-doc
+RUN curl -sSL https://api.github.com/repos/pseudomuto/protoc-gen-doc/tarball/v${PROTOC_GEN_DOC_VERSION:-1.5.1} | tar xz --strip 1 -C ${GOPATH}/src/github.com/pseudomuto/protoc-gen-doc
 WORKDIR ${GOPATH}/src/github.com/pseudomuto/protoc-gen-doc
 RUN go mod download
 ARG TARGETPLATFORM
@@ -56,7 +54,7 @@ RUN xx-verify /out/usr/bin/protoc-gen-doc
 FROM --platform=$BUILDPLATFORM go_host as protoc_gen_go_grpc
 RUN mkdir -p ${GOPATH}/src/github.com/grpc/grpc-go
 ARG PROTOC_GEN_GO_GRPC_VERSION
-RUN curl -sSL https://api.github.com/repos/grpc/grpc-go/tarball/${PROTOC_GEN_GO_GRPC_VERSION} | tar xz --strip 1 -C ${GOPATH}/src/github.com/grpc/grpc-go
+RUN curl -sSL https://api.github.com/repos/grpc/grpc-go/tarball/v${PROTOC_GEN_GO_GRPC_VERSION:-1.51.0} | tar xz --strip 1 -C ${GOPATH}/src/github.com/grpc/grpc-go
 WORKDIR ${GOPATH}/src/github.com/grpc/grpc-go/cmd/protoc-gen-go-grpc
 RUN go mod download
 ARG TARGETPLATFORM
@@ -69,7 +67,7 @@ RUN xx-verify /out/usr/bin/protoc-gen-go-grpc
 FROM --platform=$BUILDPLATFORM go_host as protoc_gen_go
 RUN mkdir -p ${GOPATH}/src/google.golang.org/protobuf
 ARG PROTOC_GEN_GO_VERSION
-RUN curl -sSL https://api.github.com/repos/protocolbuffers/protobuf-go/tarball/${PROTOC_GEN_GO_VERSION} | tar xz --strip 1 -C ${GOPATH}/src/google.golang.org/protobuf
+RUN curl -sSL https://api.github.com/repos/protocolbuffers/protobuf-go/tarball/v${PROTOC_GEN_GO_VERSION:-1.28.1} | tar xz --strip 1 -C ${GOPATH}/src/google.golang.org/protobuf
 WORKDIR ${GOPATH}/src/google.golang.org/protobuf
 RUN go mod download
 ARG TARGETPLATFORM
@@ -82,7 +80,7 @@ RUN xx-verify /out/usr/bin/protoc-gen-go
 FROM --platform=$BUILDPLATFORM go_host as protoc_gen_gogo
 RUN mkdir -p ${GOPATH}/src/github.com/gogo/protobuf
 ARG PROTOC_GEN_GOGO_VERSION
-RUN curl -sSL https://api.github.com/repos/gogo/protobuf/tarball/${PROTOC_GEN_GOGO_VERSION} | tar xz --strip 1 -C ${GOPATH}/src/github.com/gogo/protobuf
+RUN curl -sSL https://api.github.com/repos/gogo/protobuf/tarball/v${PROTOC_GEN_GOGO_VERSION:-1.3.2} | tar xz --strip 1 -C ${GOPATH}/src/github.com/gogo/protobuf
 WORKDIR ${GOPATH}/src/github.com/gogo/protobuf
 RUN go mod download
 ARG TARGETPLATFORM
@@ -104,7 +102,7 @@ RUN xx-verify /out/usr/bin/protoc-gen-gogo
 FROM --platform=$BUILDPLATFORM go_host as protoc_gen_gotemplate
 RUN mkdir -p ${GOPATH}/src/github.com/moul/protoc-gen-gotemplate
 ARG PROTOC_GEN_GOTEMPLATE_VERSION
-RUN curl -sSL https://api.github.com/repos/moul/protoc-gen-gotemplate/tarball/${PROTOC_GEN_GOTEMPLATE_VERSION} | tar xz --strip 1 -C ${GOPATH}/src/github.com/moul/protoc-gen-gotemplate
+RUN curl -sSL https://api.github.com/repos/moul/protoc-gen-gotemplate/tarball/v${PROTOC_GEN_GOTEMPLATE_VERSION:-1.11.2} | tar xz --strip 1 -C ${GOPATH}/src/github.com/moul/protoc-gen-gotemplate
 WORKDIR ${GOPATH}/src/github.com/moul/protoc-gen-gotemplate
 RUN go mod download
 ARG TARGETPLATFORM
@@ -117,7 +115,7 @@ RUN xx-verify /out/usr/bin/protoc-gen-gotemplate
 FROM --platform=$BUILDPLATFORM go_host as protoc_gen_gorm
 RUN mkdir -p ${GOPATH}/src/github.com/infobloxopen/protoc-gen-gorm
 ARG PROTOC_GEN_GORM_VERSION
-RUN curl -sSL https://api.github.com/repos/infobloxopen/protoc-gen-gorm/tarball/${PROTOC_GEN_GORM_VERSION} | tar xz --strip 1 -C ${GOPATH}/src/github.com/infobloxopen/protoc-gen-gorm
+RUN curl -sSL https://api.github.com/repos/infobloxopen/protoc-gen-gorm/tarball/v${PROTOC_GEN_GORM_VERSION:-1.1.2} | tar xz --strip 1 -C ${GOPATH}/src/github.com/infobloxopen/protoc-gen-gorm
 WORKDIR ${GOPATH}/src/github.com/infobloxopen/protoc-gen-gorm
 RUN mkdir /protoc-gen-gorm-out
 RUN go mod download
@@ -133,7 +131,7 @@ RUN xx-verify /out/usr/bin/protoc-gen-gorm
 FROM --platform=$BUILDPLATFORM go_host as protoc_gen_govalidators
 RUN mkdir -p ${GOPATH}/src/github.com/mwitkow/go-proto-validators
 ARG PROTOC_GEN_GOVALIDATORS_VERSION
-RUN curl -sSL https://api.github.com/repos/mwitkow/go-proto-validators/tarball/${PROTOC_GEN_GOVALIDATORS_VERSION} | tar xz --strip 1 -C ${GOPATH}/src/github.com/mwitkow/go-proto-validators
+RUN curl -sSL https://api.github.com/repos/mwitkow/go-proto-validators/tarball/v${PROTOC_GEN_GOVALIDATORS_VERSION:-0.3.2} | tar xz --strip 1 -C ${GOPATH}/src/github.com/mwitkow/go-proto-validators
 WORKDIR ${GOPATH}/src/github.com/mwitkow/go-proto-validators
 RUN mkdir /go-proto-validators-out
 RUN go mod download
@@ -148,7 +146,7 @@ RUN xx-verify /out/usr/bin/protoc-gen-govalidators
 FROM --platform=$BUILDPLATFORM go_host as protoc_gen_gql
 RUN mkdir -p ${GOPATH}/src/github.com/danielvladco/go-proto-gql
 ARG PROTOC_GEN_GQL_VERSION
-RUN curl -sSL https://api.github.com/repos/danielvladco/go-proto-gql/tarball/${PROTOC_GEN_GQL_VERSION} | tar xz --strip 1 -C ${GOPATH}/src/github.com/danielvladco/go-proto-gql
+RUN curl -sSL https://api.github.com/repos/danielvladco/go-proto-gql/tarball/v${PROTOC_GEN_GQL_VERSION:-0.8.0} | tar xz --strip 1 -C ${GOPATH}/src/github.com/danielvladco/go-proto-gql
 WORKDIR ${GOPATH}/src/github.com/danielvladco/go-proto-gql
 RUN go mod download
 ARG TARGETPLATFORM
@@ -164,7 +162,7 @@ RUN xx-verify /out/usr/bin/protoc-gen-gogql
 FROM --platform=$BUILDPLATFORM go_host as protoc_gen_validate
 ARG PROTOC_GEN_VALIDATE_VERSION
 RUN mkdir -p ${GOPATH}/src/github.com/bufbuild/protoc-gen-validate
-RUN curl -sSL https://api.github.com/repos/bufbuild/protoc-gen-validate/tarball/${PROTOC_GEN_VALIDATE_VERSION} | tar xz --strip 1 -C ${GOPATH}/src/github.com/bufbuild/protoc-gen-validate
+RUN curl -sSL https://api.github.com/repos/bufbuild/protoc-gen-validate/tarball/v${PROTOC_GEN_VALIDATE_VERSION:-0.9.0} | tar xz --strip 1 -C ${GOPATH}/src/github.com/bufbuild/protoc-gen-validate
 WORKDIR ${GOPATH}/src/github.com/bufbuild/protoc-gen-validate
 RUN go mod download
 ARG TARGETPLATFORM
@@ -178,7 +176,7 @@ RUN xx-verify /out/usr/bin/protoc-gen-validate
 FROM --platform=$BUILDPLATFORM go_host as protoc_gen_jsonschema
 RUN mkdir -p ${GOPATH}/src/github.com/chrusty/protoc-gen-jsonschema
 ARG PROTOC_GEN_JSONSCHEMA_VERSION
-RUN curl -sSL https://api.github.com/repos/chrusty/protoc-gen-jsonschema/tarball/${PROTOC_GEN_JSONSCHEMA_VERSION} | tar xz --strip 1 -C ${GOPATH}/src/github.com/chrusty/protoc-gen-jsonschema
+RUN curl -sSL https://api.github.com/repos/chrusty/protoc-gen-jsonschema/tarball/${PROTOC_GEN_JSONSCHEMA_VERSION:-1.3.10} | tar xz --strip 1 -C ${GOPATH}/src/github.com/chrusty/protoc-gen-jsonschema
 WORKDIR ${GOPATH}/src/github.com/chrusty/protoc-gen-jsonschema
 RUN go mod download
 ARG TARGETPLATFORM
@@ -189,20 +187,20 @@ RUN install -D ./options.proto /out/usr/include/github.com/chrusty/protoc-gen-js
 RUN xx-verify /out/usr/bin/protoc-gen-jsonschema
 
 
-FROM alpine:${ALPINE_IMAGE_VERSION} as grpc_web
+FROM alpine:${ALPINE_VERSION:-3.16} as grpc_web
 RUN apk add --no-cache \
         build-base \
         curl \
         protobuf-dev
 RUN mkdir -p /grpc-web
 ARG GRPC_WEB_VERSION
-RUN curl -sSL https://api.github.com/repos/grpc/grpc-web/tarball/${GRPC_WEB_VERSION} | tar xz --strip 1 -C /grpc-web
+RUN curl -sSL https://api.github.com/repos/grpc/grpc-web/tarball/${GRPC_WEB_VERSION:-1.4.2} | tar xz --strip 1 -C /grpc-web
 WORKDIR /grpc-web
 RUN make -j$(nproc) install-plugin
 RUN install -Ds /usr/local/bin/protoc-gen-grpc-web /out/usr/bin/protoc-gen-grpc-web
 
 
-FROM --platform=$BUILDPLATFORM rust:${RUST_IMAGE_VERSION} as rust_target
+FROM --platform=$BUILDPLATFORM rust:${RUST_VERSION:-1.65.0}-alpine${ALPINE_VERSION:-3.16} as rust_target
 COPY --from=xx / /
 WORKDIR /
 RUN mkdir -p /out
@@ -216,7 +214,7 @@ RUN apk add --no-cache \
 FROM --platform=$BUILDPLATFORM rust_target as protoc_gen_rust
 RUN mkdir -p /rust-protobuf
 ARG PROTOC_GEN_RUST_VERSION
-RUN curl -sSL https://api.github.com/repos/stepancheg/rust-protobuf/tarball/${PROTOC_GEN_RUST_VERSION} | tar xz --strip 1 -C /rust-protobuf
+RUN curl -sSL https://api.github.com/repos/stepancheg/rust-protobuf/tarball/v${PROTOC_GEN_RUST_VERSION:-3.2.0} | tar xz --strip 1 -C /rust-protobuf
 WORKDIR /rust-protobuf/protobuf-codegen
 RUN --mount=type=cache,target=/root/.cargo/git/db \
     --mount=type=cache,target=/root/.cargo/registry/cache \
@@ -224,14 +222,14 @@ RUN --mount=type=cache,target=/root/.cargo/git/db \
     cargo fetch
 ARG TARGETPLATFORM
 RUN xx-cargo --config profile.release.strip=true build --release
-RUN install -D /rust-protobuf/target/$(xx-cargo --print-target-triple)/release/protoc-gen-rust /out/usr/bin/protoc-gen-rust
+RUN install -D /rust-protobuf/target/$(xx-cargo --print-target)/release/protoc-gen-rust /out/usr/bin/protoc-gen-rust
 RUN xx-verify /out/usr/bin/protoc-gen-rust
 
 
 FROM --platform=$BUILDPLATFORM rust_target as grpc_rust
 RUN mkdir -p /grpc-rust
 ARG GRPC_RUST_VERSION
-RUN curl -sSL https://api.github.com/repos/stepancheg/grpc-rust/tarball/${GRPC_RUST_VERSION} | tar xz --strip 1 -C /grpc-rust
+RUN curl -sSL https://api.github.com/repos/stepancheg/grpc-rust/tarball/v${GRPC_RUST_VERSION:-0.8.3} | tar xz --strip 1 -C /grpc-rust
 WORKDIR /grpc-rust/grpc-compiler
 RUN --mount=type=cache,target=/root/.cargo/git/db \
     --mount=type=cache,target=/root/.cargo/registry/cache \
@@ -239,11 +237,11 @@ RUN --mount=type=cache,target=/root/.cargo/git/db \
     cargo fetch
 ARG TARGETPLATFORM
 RUN xx-cargo --config profile.release.strip=true build --release
-RUN install -D /grpc-rust/target/$(xx-cargo --print-target-triple)/release/protoc-gen-rust-grpc /out/usr/bin/protoc-gen-rust-grpc
+RUN install -D /grpc-rust/target/$(xx-cargo --print-target)/release/protoc-gen-rust-grpc /out/usr/bin/protoc-gen-rust-grpc
 RUN xx-verify /out/usr/bin/protoc-gen-rust-grpc
 
 
-FROM swift:${SWIFT_IMAGE_VERSION} as grpc_swift
+FROM swift:${SWIFT_VERSION:-5.7-focal} as grpc_swift
 RUN apt-get update
 RUN apt-get install -y \
         build-essential \
@@ -268,7 +266,7 @@ RUN <<EOF
       *)        echo "ERROR: Machine arch ${TARGETARCH} not supported." ;;
     esac
     mkdir -p /grpc-swift
-    curl -sSL https://api.github.com/repos/grpc/grpc-swift/tarball/${GRPC_SWIFT_VERSION} | tar xz --strip 1 -C /grpc-swift
+    curl -sSL https://api.github.com/repos/grpc/grpc-swift/tarball/${GRPC_SWIFT_VERSION:-1.13.0} | tar xz --strip 1 -C /grpc-swift
     cd /grpc-swift
     make
     make plugins
@@ -284,7 +282,7 @@ RUN <<EOF
 EOF
 
 
-FROM --platform=$BUILDPLATFORM alpine:${ALPINE_IMAGE_VERSION} as alpine_host
+FROM --platform=$BUILDPLATFORM alpine:${ALPINE_VERSION:-3.16} as alpine_host
 COPY --from=xx / /
 WORKDIR /
 RUN mkdir -p /out
@@ -296,7 +294,7 @@ RUN apk add --no-cache \
 FROM --platform=$BUILDPLATFORM alpine_host as googleapis
 RUN mkdir -p /googleapis
 ARG GOOGLE_API_VERSION
-RUN curl -sSL https://api.github.com/repos/googleapis/googleapis/tarball/${GOOGLE_API_VERSION} | tar xz --strip 1 -C /googleapis
+RUN curl -sSL https://api.github.com/repos/googleapis/googleapis/tarball/${GOOGLE_API_VERSION:-9de27c9c549173eac194ec80153963234a05a8b5} | tar xz --strip 1 -C /googleapis
 WORKDIR /googleapis
 RUN install -D ./google/api/annotations.proto /out/usr/include/google/api/annotations.proto
 RUN install -D ./google/api/field_behavior.proto /out/usr/include/google/api/field_behavior.proto
@@ -307,7 +305,7 @@ RUN install -D ./google/api/httpbody.proto /out/usr/include/google/api/httpbody.
 FROM --platform=$BUILDPLATFORM alpine_host as protoc_gen_lint
 RUN mkdir -p /protoc-gen-lint-out
 ARG TARGETOS TARGETARCH PROTOC_GEN_LINT_VERSION
-RUN curl -sSLO https://github.com/ckaznocha/protoc-gen-lint/releases/download/${PROTOC_GEN_LINT_VERSION}/protoc-gen-lint_${TARGETOS}_${TARGETARCH}.zip
+RUN curl -sSLO https://github.com/ckaznocha/protoc-gen-lint/releases/download/v${PROTOC_GEN_LINT_VERSION:-0.3.0}/protoc-gen-lint_${TARGETOS}_${TARGETARCH}.zip
 WORKDIR /protoc-gen-lint-out
 RUN unzip -q /protoc-gen-lint_${TARGETOS}_${TARGETARCH}.zip
 RUN install -D /protoc-gen-lint-out/protoc-gen-lint /out/usr/bin/protoc-gen-lint
@@ -315,71 +313,23 @@ ARG TARGETPLATFORM
 RUN xx-verify /out/usr/bin/protoc-gen-lint
 
 
-FROM alpine:${ALPINE_IMAGE_VERSION} as protoc_gen_js
-COPY --from=xx / /
-RUN mkdir -p /out
-RUN apk add --no-cache \
-    bash \
-    build-base \
-    curl \
-    linux-headers \
-    openjdk11-jdk \
-    python3 \
-    unzip \
-    zip
-
-# Build Bazel
-# TODO: Remove when Bazel 5.2.0+ is available in Alpine
-# https://github.com/bazelbuild/bazel/pull/14391
-ARG BAZEL_VERSION=6.0.0
-RUN mkdir -p /tmp/bazel-release
-WORKDIR /tmp/bazel-release
-RUN curl -sSLO https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-dist.zip && unzip -q bazel-${BAZEL_VERSION}-dist.zip
-RUN env EXTRA_BAZEL_ARGS="--tool_java_runtime_version=local_jdk --curses=no" bash ./compile.sh
-RUN install -D output/bazel /usr/local/bin/bazel
-
-# Build protoc-gen-js
-# TODO: Remove when protoc-gen-js is available in Alpine
-# https://gitlab.alpinelinux.org/alpine/aports/-/issues/14399
-RUN mkdir -p /protoc_gen_js
-ARG PROTOC_GEN_JS_VERSION
-RUN curl -sSL https://api.github.com/repos/protocolbuffers/protobuf-javascript/tarball/${PROTOC_GEN_JS_VERSION} | tar xz --strip 1 -C /protoc_gen_js
-WORKDIR /protoc_gen_js
-RUN bazel build plugin_files
-RUN install -D /protoc_gen_js/bazel-bin/generator/protoc-gen-js /out/usr/bin/protoc-gen-js
-ARG TARGETPLATFORM
-RUN xx-verify /out/usr/bin/protoc-gen-js
-
-
-FROM node:${NODE_IMAGE_VERSION} as protoc_gen_ts
-ARG NODE_IMAGE_VERSION
+FROM node:${NODE_VERSION:-18.5.0}-alpine${ALPINE_VERSION:-3.16} as protoc_gen_ts
 ARG PROTOC_GEN_TS_VERSION
-RUN npm install -g pkg ts-protoc-gen@${PROTOC_GEN_TS_VERSION}
+RUN npm install -g pkg ts-protoc-gen@${PROTOC_GEN_TS_VERSION:-0.15.0}
 RUN pkg \
         --compress Brotli \
-        --targets node${NODE_IMAGE_VERSION%%.*}-alpine \
+        --targets node${NODE_VERSION:-18.5.0}-alpine \
         -o protoc-gen-ts \
         /usr/local/lib/node_modules/ts-protoc-gen
 RUN install -D protoc-gen-ts /out/usr/bin/protoc-gen-ts
 
-FROM sbtscala/scala-sbt:${SCALA_SBT_IMAGE_VERSION} as protoc_gen_scala
-RUN mkdir -p /scala-protobuf
-ARG PROTOC_GEN_SCALA_VERSION
-RUN curl -sSL https://api.github.com/repos/scalapb/ScalaPB/tarball/${PROTOC_GEN_SCALA_VERSION} | tar xz --strip 1 -C /scala-protobuf
-WORKDIR /scala-protobuf
-RUN gu install native-image
-# Make sbt use the version of native-image installed by gu instead of downloading a separate version
-ARG NATIVE_IMAGE_INSTALLED=true
-RUN ./make_reflect_config.sh
-RUN sbt protocGenScalaNativeImage/nativeImage
-RUN install -D /scala-protobuf/target/protoc-gen-scala /out/usr/bin/protoc-gen-scala
 
-FROM dart:${DART_IMAGE_VERSION} as protoc_gen_dart
+FROM dart:${DART_VERSION:-2.18.5} as protoc_gen_dart
 RUN apt-get update
 RUN apt-get install -y curl
 RUN mkdir -p /dart-protobuf
 ARG PROTOC_GEN_DART_VERSION
-RUN curl -sSL https://api.github.com/repos/google/protobuf.dart/tarball/protoc_plugin-${PROTOC_GEN_DART_VERSION} | tar xz --strip 1 -C /dart-protobuf
+RUN curl -sSL https://api.github.com/repos/google/protobuf.dart/tarball/protoc_plugin-v${PROTOC_GEN_DART_VERSION:-20.0.1} | tar xz --strip 1 -C /dart-protobuf
 WORKDIR /dart-protobuf/protoc_plugin 
 RUN dart pub get
 RUN dart compile exe --verbose bin/protoc_plugin.dart -o protoc_plugin
@@ -389,8 +339,8 @@ RUN install -D /dart-protobuf/protoc_plugin/protoc_plugin /out/usr/bin/protoc-ge
 FROM --platform=$BUILDPLATFORM alpine_host as upx
 RUN mkdir -p /upx
 ARG BUILDARCH BUILDOS UPX_VERSION
-RUN curl -sSL https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-${BUILDARCH}_${BUILDOS}.tar.xz | tar xJ --strip 1 -C /upx
-RUN install -D /upx/upx /usr/local/bin/upx
+RUN if ! [ "${TARGETARCH}" = "arm64" ]; then curl -sSL https://github.com/upx/upx/releases/download/v${UPX_VERSION:-4.0.1}/upx-${UPX_VERSION:-4.0.1}-${BUILDARCH}_${BUILDOS}.tar.xz | tar xJ --strip 1 -C /upx; fi
+RUN if ! [ "${TARGETARCH}" = "arm64" ]; then install -D /upx/upx /usr/local/bin/upx; fi
 COPY --from=googleapis /out/ /out/
 COPY --from=grpc_gateway /out/ /out/
 COPY --from=grpc_rust /out/ /out/
@@ -404,33 +354,35 @@ COPY --from=protoc_gen_gorm /out/ /out/
 COPY --from=protoc_gen_gotemplate /out/ /out/
 COPY --from=protoc_gen_govalidators /out/ /out/
 COPY --from=protoc_gen_gql /out/ /out/
-COPY --from=protoc_gen_js /out/ /out/
 COPY --from=protoc_gen_jsonschema /out/ /out/
 COPY --from=protoc_gen_lint /out/ /out/
 COPY --from=protoc_gen_rust /out/ /out/
-COPY --from=protoc_gen_scala /out/ /out/
 COPY --from=protoc_gen_validate /out/ /out/
 ARG TARGETARCH
-RUN upx --lzma $(find /out/usr/bin/ -type f \
+RUN <<EOF
+    if ! [ "${TARGETARCH}" = "arm64" ]; then
+        upx --lzma $(find /out/usr/bin/ -type f \
             -name 'protoc-gen-*' -or \
-            -name 'grpc_*')
+            -name 'grpc_*' \
+        )
+    fi
+EOF
 RUN find /out -name "*.a" -delete -or -name "*.la" -delete
 
 
-FROM alpine:${ALPINE_IMAGE_VERSION}
+FROM alpine:${ALPINE_VERSION:-3.16}
 LABEL maintainer="Roman Volosatovs <rvolosatovs@riseup.net>"
-RUN apk add --no-cache \
-        bash \
-        grpc \
-        grpc-java \
-        grpc-plugins \
-        protobuf \
-        protobuf-dev \
-        protobuf-c-compiler
 COPY --from=upx /out/ /
 COPY --from=protoc_gen_ts /out/ /
 COPY --from=protoc_gen_dart /out/ /
 COPY --from=protoc_gen_dart /runtime/ /
+RUN apk add --no-cache \
+        bash \
+        grpc \
+        grpc-java \
+        protobuf \
+        protobuf-dev \
+        protobuf-c-compiler
 RUN ln -s /usr/bin/grpc_cpp_plugin /usr/bin/protoc-gen-grpc-cpp
 RUN ln -s /usr/bin/grpc_csharp_plugin /usr/bin/protoc-gen-grpc-csharp
 RUN ln -s /usr/bin/grpc_node_plugin /usr/bin/protoc-gen-grpc-js
@@ -469,7 +421,6 @@ RUN protoc-wrapper \
         --python_out=/test \
         --ruby_out=/test \
         --rust_out=/test \
-        --scala_out=/test \
         --ts_out=/test \
         --validate_out=lang=go:/test \
         google/protobuf/any.proto
